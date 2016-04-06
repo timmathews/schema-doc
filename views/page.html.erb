@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title><%= @title %></title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/stylesheets/style.css" rel="stylesheet">
+    <link href="assets/stylesheets/syntax.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center"><%= @title %></h1>
+      <%= yield %>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<div class="row">
+  <div class="col-xs-12">
+    <a name="<%= part['title'] ? part['title'].downcase : '' %>"></a>
+    <h1><%= part['title'] %></h1>
+    <p><%= part['description'] %></p>
+    <% ['properties', 'patternProperties', 'definitions'].each do |key| %>
+      <% if part[key] %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% part[key].each do |name, property| %>
+              <tr>
+                <td>
+                  <p class="<%= property['required'] ? 'strong' : '' %>"><%= name %></p>
+                </td>
+                <td>
+                  <% if property['units'] %>
+                    <p><%= "(#{property['units']})" %></p>
+                  <% end %>
+                  <% if property['type'] == 'object' %>
+                    <% if property['patternProperties']; p = property['patternProperties'] %>
+                      Collection of <a href="#<%= name.singularize %>"><%= name %></a>
+                      <br>
+                      Pattern:
+                      <%= highlight_pattern p.keys[0] %>
+                    <% else %>
+                      <a href="#<%= name %>"><%= name %></a> object
+                    <% end %>
+                  <% elsif property['type'] == 'array' %>
+                    <% p = property['additionalProperties']; if !p.nil? %>
+                      Array of <%= property['additionalProperties']['type'] %>
+                    <% end %>
+                    <% p = property['items']; if !p.nil? %>
+                      Array of
+                      <% if p.is_a? Array %>
+                        <table>
+                          <% p.each do |item| %>
+                            <tr>
+                              <td><%= item['title'] %></td>
+                              <td><%= item['type'] %></td>
+                              <td><%= item['description'] %><%= highlight item['id'], item['example'] %></td>
+                            </tr>
+                          <% end %>
+                        </table>
+                      <% else %>
+                        <%= p['type'] %>
+                      <% end %>
+                    <% end %>
+                  <% else %>
+                    <p><%= property['type'] %></p>
+                  <% end %>
+                </td>
+                <td>
+                  <p><%= property['description'] %></p>
+                  <% if property['enum'] %>
+                    <ul>
+                      <% property['enum'].each do |p| %>
+                        <li><%= p %></li>
+                      <% end %>
+                    </ul>
+                  <% end %>
+                  <%= highlight name, property['example'] %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    <% end %>
+  </div>
+</div>
