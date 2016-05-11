@@ -7,6 +7,7 @@ require "jsonpath"
 require "erb"
 require "rouge"
 require "active_support/inflector"
+require "active_support"
 require "pp"
 
 class String
@@ -21,7 +22,7 @@ class JsonParser
     @partials = Hash.new
     @object_template = ERB.new(File.read('views/object.html.erb'))
     @page_template = ERB.new(File.read('views/page.html.erb'))
-    @schema = JSON.parse(File.read('schemas/schema-03.json'))
+    @schema = JSON.parse(File.read('schemas/schema-04.json'))
     @root = File.basename root
     @seen = []
     @outfile = ''
@@ -39,6 +40,7 @@ class JsonParser
   end
 
   def highlight n, v
+    STDERR.puts "Highlight => #{v}<br>"
     return '' if v.nil?
     t = "{\"#{n}\": \"#{v}\"}"
     Rouge.highlight t, 'json', 'html'
@@ -70,10 +72,7 @@ class JsonParser
     html = ""
     p = {}
 
-    STDERR.puts "Parsing #{part['title']}"
-
     parser = Proc.new do |name,attr|
-      STDERR.puts "Processing #{name}"
       if attr['patternProperties']
         attr['patternProperties'].each do |_,prop|
           ref = expand_refs prop
@@ -95,7 +94,6 @@ class JsonParser
     end
 
     if part['definitions']
-      STDERR.puts "Processing definitions"
       p = part['definitions']
       p.each(&parser)
     end
@@ -130,7 +128,7 @@ class JsonParser
 
       if path
         path.gsub!(/\//, '.')
-        STDERR.puts "Path: #{key} => #{path}"
+        STDERR.puts "Path: #{key} => #{path}<br>"
         p = JsonPath.new path
         return (p.on @json_blocks[key])[0]
       else
@@ -141,10 +139,9 @@ class JsonParser
   end
 
   def add(file)
-    STDERR.puts "add #{file}"
     v = JSON.parse(File.read(file))
     k = File.basename(file)
-    errors = JSON::Validator.fully_validate(@schema, v, :errors_as_objects => true)
+    errors = JSON::Validator.fully_validate(@schema, v, :errors_as_objects => true, :version => :draft4)
     if errors == []
       @json_blocks[k] = v
     else
