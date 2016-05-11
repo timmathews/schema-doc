@@ -1,8 +1,8 @@
 <div class="row">
   <div class="col-xs-12">
-    <a name="<%= part['title'] ? part['title'].downcase : '' %>"></a>
+    <a id="<%= part['title'] ? part['title'].downcase : '' %>"></a>
     <h1><%= part['title'] %></h1>
-    <p><%= part['description'] %></p>
+    <p><%= ERB::Util.h part['description'] %></p>
     <% ['properties', 'patternProperties', 'definitions'].each do |key| %>
       <% if part[key] %>
         <table class="table">
@@ -44,7 +44,11 @@
                             <tr>
                               <td><%= item['title'] %></td>
                               <td><%= item['type'] %></td>
-                              <td><%= item['description'] %><%= highlight item['id'], item['example'] %></td>
+                              <td>
+                                <%= ERB::Util.h item['description'] %>
+                                <%= highlight item['id'], item['example'] %>
+                                <%= highlight item['id'], item['default'] %>
+                              </td>
                             </tr>
                           <% end %>
                         </table>
@@ -57,7 +61,7 @@
                   <% end %>
                 </td>
                 <td>
-                  <p><%= property['description'] %></p>
+                  <p><%= ERB::Util.h property['description'] %></p>
                   <% if property['enum'] %>
                     <ul>
                       <% property['enum'].each do |p| %>
