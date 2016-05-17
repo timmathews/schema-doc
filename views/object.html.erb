@@ -1,7 +1,7 @@
 <div class="row">
   <div class="col-xs-12">
-    <a id="<%= part['title'] ? part['title'].downcase : '' %>"></a>
-    <h1><%= part['title'] %></h1>
+    <a id="<%= part['id'] %>"></a>
+    <h1><%= part['title'] %> <a class="toc" href="#">TOC</a></h1>
     <p><%= ERB::Util.h part['description'] %></p>
     <% ['properties', 'patternProperties', 'definitions'].each do |key| %>
       <% if part[key] %>
