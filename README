@@ -6,3 +6,4 @@ Generate schema documentation from JSON Schema files.
 
 ```
 $ ./parse.rb <path-to-root-schema-file> > schema.html
+```
