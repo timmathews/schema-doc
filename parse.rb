@@ -5,6 +5,7 @@ require "json"
 require "json-schema"
 require "jsonpath"
 require "erb"
+require "oj"
 require "rouge"
 require "active_support/inflector"
 require "active_support"
@@ -40,7 +41,6 @@ class JsonParser
   end
 
   def highlight n, v
-    STDERR.puts "Highlight => #{v}<br>"
     return '' if v.nil?
     t = "{\"#{n}\": \"#{v}\"}"
     Rouge.highlight t, 'json', 'html'
@@ -65,7 +65,9 @@ class JsonParser
       :object_nl => "\n",
       :array_nl => "\n"
 
-      Rouge.highlight s, "json", "html"
+      formatter = Rouge::Formatters::HTML.new(css_class: 'highlight error')
+      lexer = Rouge::Lexers::JSON.new
+      formatter.format(lexer.lex(s))
   end
 
   def parse part
@@ -73,6 +75,10 @@ class JsonParser
     p = {}
 
     parser = Proc.new do |name,attr|
+      if name != "$ref"
+        attr['id'] = name
+      end
+
       if attr['patternProperties']
         attr['patternProperties'].each do |_,prop|
           ref = expand_refs prop
@@ -108,6 +114,12 @@ class JsonParser
       p.each(&parser)
     end
 
+    if part['allOf']
+      part['allOf'].each do |av|
+        av.each(&parser)
+      end
+    end
+
     html = @object_template.result(binding) + html
 
     html
@@ -128,7 +140,7 @@ class JsonParser
 
       if path
         path.gsub!(/\//, '.')
-        STDERR.puts "Path: #{key} => #{path}<br>"
+        STDERR.puts "Path: #{key} => #{path}"
         p = JsonPath.new path
         return (p.on @json_blocks[key])[0]
       else
@@ -139,14 +151,14 @@ class JsonParser
   end
 
   def add(file)
-    v = JSON.parse(File.read(file))
+    v = Oj.load(File.read(file))
     k = File.basename(file)
     errors = JSON::Validator.fully_validate(@schema, v, :errors_as_objects => true, :version => :draft4)
     if errors == []
       @json_blocks[k] = v
     else
-      STDERR.puts "Errors parsing #{k}"
-      STDERR.puts pretty_json errors
+      puts "<h1 class=\"error\">Errors parsing #{k}</h1>"
+      puts pretty_json errors
     end
   end
 end
